@@ -15,7 +15,8 @@ const
   crypto = require('crypto'),
   express = require('express'),
   https = require('https'),  
-  request = require('request');
+  request = require('request'),
+  _ = require('lodash');
 
 var app = express();
 app.set('port', process.env.PORT || 5000);
@@ -88,14 +89,8 @@ app.post('/webhook', function (req, res) {
           receivedAuthentication(messagingEvent);
         } else if (messagingEvent.message) {
           receivedMessage(messagingEvent);
-        } else if (messagingEvent.delivery) {
-          receivedDeliveryConfirmation(messagingEvent);
         } else if (messagingEvent.postback) {
           receivedPostback(messagingEvent);
-        } else if (messagingEvent.read) {
-          receivedMessageRead(messagingEvent);
-        } else if (messagingEvent.account_linking) {
-          receivedAccountLink(messagingEvent);
         } else {
           console.log("Webhook received unknown messagingEvent: ", messagingEvent);
         }
@@ -108,29 +103,6 @@ app.post('/webhook', function (req, res) {
     // successfully received the callback. Otherwise, the request will time out.
     res.sendStatus(200);
   }
-});
-
-/*
- * This path is used for account linking. The account linking call-to-action
- * (sendAccountLinking) is pointed to this URL. 
- * 
- */
-app.get('/authorize', function(req, res) {
-  var accountLinkingToken = req.query.account_linking_token;
-  var redirectURI = req.query.redirect_uri;
-
-  // Authorization Code should be generated per user by the developer. This will 
-  // be passed to the Account Linking callback.
-  var authCode = "1234567890";
-
-  // Redirect users to this URI on successful login
-  var redirectURISuccess = redirectURI + "&authorization_code=" + authCode;
-
-  res.render('authorize', {
-    accountLinkingToken: accountLinkingToken,
-    redirectURI: redirectURI,
-    redirectURISuccess: redirectURISuccess
-  });
 });
 
 /*
@@ -206,6 +178,8 @@ function receivedAuthentication(event) {
  * then we'll simply confirm that we've received the attachment.
  * 
  */
+const foodKeywords = ['hungry', 'food', 'meal', 'snack', 'cuisine', 'drink', 'chow', 'tilted', 'jason'];
+
 function receivedMessage(event) {
   var senderID = event.sender.id;
   var recipientID = event.recipient.id;
@@ -232,6 +206,7 @@ function receivedMessage(event) {
       messageId, appId, metadata);
     return;
   } else if (quickReply) {
+    // TODO: for user experience rating
     var quickReplyPayload = quickReply.payload;
     console.log("Quick reply for message %s with payload %s",
       messageId, quickReplyPayload);
@@ -242,96 +217,77 @@ function receivedMessage(event) {
 
   if (messageText) {
 
-    // If we receive a text message, check to see if it matches any special
-    // keywords and send back the corresponding example. Otherwise, just echo
-    // the text we received.
-    switch (messageText) {
-      case 'image':
-        sendImageMessage(senderID);
-        break;
-
-      case 'gif':
-        sendGifMessage(senderID);
-        break;
-
-      case 'audio':
-        sendAudioMessage(senderID);
-        break;
-
-      case 'video':
-        sendVideoMessage(senderID);
-        break;
-
-      case 'file':
-        sendFileMessage(senderID);
-        break;
-
-      case 'button':
-        sendButtonMessage(senderID);
-        break;
-
-      case 'generic':
-        sendGenericMessage(senderID);
-        break;
-
-      case 'receipt':
-        sendReceiptMessage(senderID);
-        break;
-
-      case 'quick reply':
-        sendQuickReply(senderID);
-        break;        
-
-      case 'read receipt':
-        sendReadReceipt(senderID);
-        break;        
-
-      case 'typing on':
-        sendTypingOn(senderID);
-        break;        
-
-      case 'typing off':
-        sendTypingOff(senderID);
-        break;        
-
-      case 'account linking':
-        sendAccountLinking(senderID);
-        break;
-
-      default:
-        sendTextMessage(senderID, messageText);
+    // check for keywords
+    if (_.some(foodKeywords, (word) => {
+      return _.includes(_.toLower(messageText), word);
+    })) {
+      sendRestaurantRecommendation(senderID);
+    } else {
+      sendTextMessage(senderID, "I'm not sure what you mean");
     }
-  } else if (messageAttachments) {
-    sendTextMessage(senderID, "Message with attachment received");
   }
 }
 
+function sendRestaurantRecommendation(recipientId) {
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "generic",
+          elements: [{
+            title: "Campus Pizza",
+            subtitle: "Call us for all your pizza needs!",
+            item_url: "http://www.campuspizza.ca/",               
+            image_url: SERVER_URL + "/assets/campus_pizza.png",
+            buttons: [{
+              type: "web_url",
+              url: "http://www.campuspizza.ca/",
+              title: "Open Web URL"
+            }, {
+              type: "postback",
+              title: "I want this!",
+              payload: "campus_pizza",
+            }],
+          }, {
+            title: "Foodie Fruitie",
+            subtitle: "Ramen X Juice X Sushi",
+            item_url: "http://foodiefruitie.com/",               
+            image_url: SERVER_URL + "/assets/foodiefruitie.png",
+            buttons: [{
+              type: "web_url",
+              url: "http://foodiefruitie.com/",
+              title: "Open Web URL"
+            }, {
+              type: "postback",
+              title: "I want this!",
+              payload: "foodie_fruitie",
+            }],
+          }, {
+            title: "Williams Fresh Cafe",
+            subtitle: "Canada's leading fast casual fresh food cafe",
+            item_url: "http://williamsfreshcafe.com/",               
+            image_url: SERVER_URL + "/assets/williams.png",
+            buttons: [{
+              type: "web_url",
+              url: "http://williamsfreshcafe.com/",
+              title: "Open Web URL"
+            }, {
+              type: "postback",
+              title: "I want this!",
+              payload: "williams",
+            }],
+          }]
+        }
+      }
+    }
+  };
 
-/*
- * Delivery Confirmation Event
- *
- * This event is sent to confirm the delivery of a message. Read more about 
- * these fields at https://developers.facebook.com/docs/messenger-platform/webhook-reference/message-delivered
- *
- */
-function receivedDeliveryConfirmation(event) {
-  var senderID = event.sender.id;
-  var recipientID = event.recipient.id;
-  var delivery = event.delivery;
-  var messageIDs = delivery.mids;
-  var watermark = delivery.watermark;
-  var sequenceNumber = delivery.seq;
-
-  if (messageIDs) {
-    messageIDs.forEach(function(messageID) {
-      console.log("Received delivery confirmation for message ID: %s", 
-        messageID);
-    });
-  }
-
-  console.log("All message before %d were delivered.", watermark);
+  callSendAPI(messageData);
 }
-
 
 /*
  * Postback Event
@@ -354,173 +310,9 @@ function receivedPostback(event) {
 
   // When a postback is called, we'll send a message back to the sender to 
   // let them know it was successful
-  sendTextMessage(senderID, "Postback called");
-}
+  sendTextMessage(senderID, "Want any of these?");
 
-/*
- * Message Read Event
- *
- * This event is called when a previously-sent message has been read.
- * https://developers.facebook.com/docs/messenger-platform/webhook-reference/message-read
- * 
- */
-function receivedMessageRead(event) {
-  var senderID = event.sender.id;
-  var recipientID = event.recipient.id;
-
-  // All messages before watermark (a timestamp) or sequence have been seen.
-  var watermark = event.read.watermark;
-  var sequenceNumber = event.read.seq;
-
-  console.log("Received message read event for watermark %d and sequence " +
-    "number %d", watermark, sequenceNumber);
-}
-
-/*
- * Account Link Event
- *
- * This event is called when the Link Account or UnLink Account action has been
- * tapped.
- * https://developers.facebook.com/docs/messenger-platform/webhook-reference/account-linking
- * 
- */
-function receivedAccountLink(event) {
-  var senderID = event.sender.id;
-  var recipientID = event.recipient.id;
-
-  var status = event.account_linking.status;
-  var authCode = event.account_linking.authorization_code;
-
-  console.log("Received account link event with for user %d with status %s " +
-    "and auth code %s ", senderID, status, authCode);
-}
-
-/*
- * Send an image using the Send API.
- *
- */
-function sendImageMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "image",
-        payload: {
-          url: SERVER_URL + "/assets/rift.png"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a Gif using the Send API.
- *
- */
-function sendGifMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "image",
-        payload: {
-          url: SERVER_URL + "/assets/instagram_logo.gif"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send audio using the Send API.
- *
- */
-function sendAudioMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "audio",
-        payload: {
-          url: SERVER_URL + "/assets/sample.mp3"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a video using the Send API.
- *
- */
-function sendVideoMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "video",
-        payload: {
-          url: SERVER_URL + "/assets/allofus480.mov"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a file using the Send API.
- *
- */
-function sendFileMessage(recipientId) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      attachment: {
-        type: "file",
-        payload: {
-          url: SERVER_URL + "/assets/test.txt"
-        }
-      }
-    }
-  };
-
-  callSendAPI(messageData);
-}
-
-/*
- * Send a text message using the Send API.
- *
- */
-function sendTextMessage(recipientId, messageText) {
-  var messageData = {
-    recipient: {
-      id: recipientId
-    },
-    message: {
-      text: messageText,
-      metadata: "DEVELOPER_DEFINED_METADATA"
-    }
-  };
-
-  callSendAPI(messageData);
+  // Send a list of recommendations for the particular restaurant
 }
 
 /*
