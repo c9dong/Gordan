@@ -410,7 +410,7 @@ function receivedPostback(event) {
   // button for Structured Messages. 
   var payload = event.postback.payload;
 
-  if(payload.type) {
+  if(payload) {
     if (_.startsWith(payload, "restaurant")) {
       sendTextMessage(senderID, "Want any of these?");
       // Send a list of recommendations for the particular restaurant
