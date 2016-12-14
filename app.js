@@ -457,6 +457,19 @@ function receivedPostback(event) {
     "at %d", senderID, recipientID, payload, timeOfPostback);
 }
 
+function sendTextMessage(recipientId, messageText) {
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      text: messageText
+    }
+  };
+
+  callSendAPI(messageData);
+}
+
 /*
  * Send a button message using the Send API.
  *
