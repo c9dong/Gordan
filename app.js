@@ -255,7 +255,7 @@ function sendRestaurantRecommendation(recipientId) {
             title: "Foodie Fruitie",
             subtitle: "Ramen X Juice X Sushi",
             item_url: "http://foodiefruitie.com/",               
-            image_url: SERVER_URL + "/assets/foodiefruitie.png",
+            image_url: SERVER_URL + "/assets/foodie_fruitie.png",
             buttons: [{
               type: "web_url",
               url: "http://foodiefruitie.com/",
@@ -290,7 +290,7 @@ function sendRestaurantRecommendation(recipientId) {
 
 function sendRecommendationsForRestaurant(recipientId, restaurant) {
   const recommendations = {
-    "campus_pizza": [{
+    "restaurant_campus_pizza": [{
       title: "Vegetarian Pizza",
       subtitle: "4.99",            
       image_url: SERVER_URL + "/assets/vegetarian_pizza.png",
@@ -318,7 +318,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: "item_campus_pizza_pepperoni_pizza"
       }],
     }],
-    "foodie_fruitie": [{
+    "restaurant_foodie_fruitie": [{
       title: "Teriyaki Salmon",
       subtitle: "9.99",            
       image_url: SERVER_URL + "/assets/teriyaki_salmon.png",
@@ -346,7 +346,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: "item_foodie_frutie_curry_ramen",
       }],
     }],
-    "williams": [{
+    "restaurant_williams": [{
       title: "Chicken Quesadilla",
       subtitle: "6.99",            
       image_url: SERVER_URL + "/assets/chicken_quesadilla.png",
@@ -414,7 +414,7 @@ function receivedPostback(event) {
     if (_.startsWith(payload, "restaurant")) {
       sendTextMessage(senderID, "Want any of these?");
       // Send a list of recommendations for the particular restaurant
-      sendRecommendationsForRestaurant(senderID, payload.value);
+      sendRecommendationsForRestaurant(senderID, payload);
     } else if (_.startsWith(payload, "item")) {
       sendTextMessage(senderID, "We got your order!");
     } else {
