@@ -216,7 +216,6 @@ function receivedMessage(event) {
   }
 
   if (messageText) {
-
     // check for keywords
     if (_.some(foodKeywords, (word) => {
       return _.includes(_.toLower(messageText), word);
@@ -250,10 +249,7 @@ function sendRestaurantRecommendation(recipientId) {
             }, {
               type: "postback",
               title: "I want this!",
-              payload: {
-                "type": "restaurant",
-                "value": "campus_pizza",
-              }
+              payload: "restaurant_campus_pizza",
             }],
           }, {
             title: "Foodie Fruitie",
@@ -267,10 +263,7 @@ function sendRestaurantRecommendation(recipientId) {
             }, {
               type: "postback",
               title: "I want this!",
-              payload: {
-                "type": "restaurant",
-                "value": "foodie_fruitie",
-              }
+              payload: "restaurant_foodie_fruitie"
             }],
           }, {
             title: "Williams Fresh Cafe",
@@ -284,10 +277,7 @@ function sendRestaurantRecommendation(recipientId) {
             }, {
               type: "postback",
               title: "I want this!",
-              payload: {
-                "type": "restaurant",
-                "value": "williams",
-              }
+              payload: "restaurant_williams"
             }],
           }]
         }
@@ -307,33 +297,27 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "campus_pizza_vegetarian_pizza",
-        }}],
-      }, {
+        payload: "item_campus_pizza_vegetarian_pizza"
+      }],
+    }, {
       title: "Cheese Pizza",
       subtitle: "4.99",            
       image_url: SERVER_URL + "/assets/cheese_pizza.png",
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "campus_pizza_cheese_pizza",
-        }}],
-      }, {
+        payload: "item_campus_pizza_cheese_pizza"
+      }],
+    }, {
       title: "Pepperoni Pizza",
       subtitle: "4.99",            
       image_url: SERVER_URL + "/assets/pepperoni_pizza.png",
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "campus_pizza_pepperoni_pizza",
-        }}],
+        payload: "item_campus_pizza_pepperoni_pizza"
       }],
+    }],
     "foodie_fruitie": [{
       title: "Teriyaki Salmon",
       subtitle: "9.99",            
@@ -341,33 +325,27 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "foodie_frutie_teriyaki_salmon",
-        }}],
-      }, {
+        payload: "item_foodie_frutie_teriyaki_salmon"
+      }],
+    }, {
       title: "BBQ Pork Fried Rice",
       subtitle: "9.99",            
       image_url: SERVER_URL + "/assets/pork_fried_rice.png",
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "foodie_frutie_pork_fried_rice",
-        }}],
-      }, {
+        payload: "item_foodie_frutie_pork_fried_rice"
+      }],
+    }, {
       title: "Curry Ramen",
       subtitle: "4.99",            
       image_url: SERVER_URL + "/assets/curry_ramen.png",
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "foodie_frutie_curry_ramen",
-        }}],
+        payload: "item_foodie_frutie_curry_ramen",
       }],
+    }],
     "williams": [{
       title: "Chicken Quesadilla",
       subtitle: "6.99",            
@@ -375,33 +353,27 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "williams_chicken_quesadilla",
-        }}],
-      }, {
+        payload: "item_williams_chicken_quesadilla",
+      }],
+    }, {
       title: "William's Big Breakfast",
       subtitle: "9.99",            
       image_url: SERVER_URL + "/assets/big_breakfast.png",
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "williams_big_breakfast",
-        }}],
-      }, {
+        payload: "item_williams_big_breakfast",
+      }],
+    }, {
       title: "Mac'n'Cheese",
       subtitle: "4.99",            
       image_url: SERVER_URL + "/assets/mac_cheese.png",
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: {
-          "type": "item",
-          "value": "williams_mac_cheese",
-        }}],
+        payload: "item_williams_mac_cheese",
       }],
+    }],
   };
 
   var messageData = {
@@ -439,17 +411,14 @@ function receivedPostback(event) {
   var payload = event.postback.payload;
 
   if(payload.type) {
-    switch(payload.type) {
-      case "restaurant":
-        sendTextMessage(senderID, "Want any of these?");
-        // Send a list of recommendations for the particular restaurant
-        sendRecommendationsForRestaurant(senderID, payload.value);
-        break;
-      case "item":
-        sendTextMessage(senderID, "We got your order!");
-        break;
-      default:
-        sendTextMessage(senderID, "Sorry, we couldn't understand your message");
+    if (_.startsWith(payload, "restaurant")) {
+      sendTextMessage(senderID, "Want any of these?");
+      // Send a list of recommendations for the particular restaurant
+      sendRecommendationsForRestaurant(senderID, payload.value);
+    } else if (_.startsWith(payload, "item")) {
+      sendTextMessage(senderID, "We got your order!");
+    } else {
+      sendTextMessage(senderID, "Sorry, we couldn't understand your message");
     }
   }
 
