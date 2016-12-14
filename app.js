@@ -178,7 +178,7 @@ function receivedAuthentication(event) {
  * then we'll simply confirm that we've received the attachment.
  * 
  */
-const foodKeywords = ['hungry', 'food', 'meal', 'snack', 'cuisine', 'drink', 'chow', 'tilted', 'jason'];
+const foodKeywords = ['hungry', 'food', 'meal', 'snack', 'cuisine', 'drink', 'chow', 'breakfast', 'lunch', 'dinner', 'brunch', 'buffet'];
 
 function receivedMessage(event) {
   var senderID = event.sender.id;
@@ -297,7 +297,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_campus_pizza_vegetarian_pizza"
+        payload: "item|Vegetarian Pizza|4.99|"+SERVER_URL + "/assets/vegetarian_pizza.png",
       }],
     }, {
       title: "Cheese Pizza",
@@ -306,7 +306,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_campus_pizza_cheese_pizza"
+        payload: "item|Cheese Pizza|4.99|"+SERVER_URL + "/assets/cheese_pizza.png",
       }],
     }, {
       title: "Pepperoni Pizza",
@@ -315,7 +315,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_campus_pizza_pepperoni_pizza"
+        payload: "item|Pepperoni Pizza|4.99|"+SERVER_URL + "/assets/pepperoni_pizza.png",
       }],
     }],
     "restaurant_foodie_fruitie": [{
@@ -325,7 +325,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_foodie_frutie_teriyaki_salmon"
+        payload: "item|Teriyaki Salmon|9.99|"+SERVER_URL + "/assets/teriyaki_salmon.png",
       }],
     }, {
       title: "BBQ Pork Fried Rice",
@@ -334,16 +334,16 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_foodie_frutie_pork_fried_rice"
+        payload: "item|BBQ Pork Fried Rice|9.99|"+SERVER_URL + "/assets/pork_fried_rice.png",
       }],
     }, {
       title: "Curry Ramen",
-      subtitle: "4.99",            
+      subtitle: "9.99",            
       image_url: SERVER_URL + "/assets/curry_ramen.png",
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_foodie_frutie_curry_ramen",
+        payload: "item|Curry Ramen|9.99|"+SERVER_URL + "/assets/curry_ramen.png",
       }],
     }],
     "restaurant_williams": [{
@@ -353,7 +353,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_williams_chicken_quesadilla",
+        payload: "item|Chicken Quesadilla|6.99|"+SERVER_URL + "/assets/chicken_quesadilla.png",
       }],
     }, {
       title: "William's Big Breakfast",
@@ -362,7 +362,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_williams_big_breakfast",
+        payload: "item|William's Big Breakfast|9.99|"+SERVER_URL + "/assets/big_breakfast.png",
       }],
     }, {
       title: "Mac'n'Cheese",
@@ -371,7 +371,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
       buttons: [{
         type: "postback",
         title: "I want this!",
-        payload: "item_williams_mac_cheese",
+        payload: "item|Mac'n'Cheese|4.99|"+SERVER_URL + "/assets/mac_cheese.png",
       }],
     }],
   };
@@ -416,7 +416,12 @@ function receivedPostback(event) {
       // Send a list of recommendations for the particular restaurant
       sendRecommendationsForRestaurant(senderID, payload);
     } else if (_.startsWith(payload, "item")) {
+      const payloadData = _.split(payload, '|');
+      const food = payloadData[1];
+      const price = payloadData[2];
+      const img_url = payloadData[3];
       sendTextMessage(senderID, "We got your order!");
+      sendOrderReceipt(senderID, food, price, img_url);
     } else {
       sendTextMessage(senderID, "Sorry, we couldn't understand your message");
     }
@@ -424,6 +429,54 @@ function receivedPostback(event) {
 
   console.log("Received postback for user %d and page %d with payload '%s' " + 
     "at %d", senderID, recipientID, payload, timeOfPostback);
+}
+
+function sendOrderReceipt(recipientId, food, price, img_url) {
+  // Generate a random receipt ID as the API requires a unique ID
+  var receiptId = "order" + Math.floor(Math.random()*1000);
+
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message:{
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "receipt",
+          recipient_name: "David Dong",
+          order_number: receiptId,
+          currency: "USD",
+          payment_method: "Visa 1234",        
+          timestamp: "1428444852", 
+          elements: [{
+            title: food,
+            quantity: 1,
+            price: price,
+            currency: "CAD",
+            image_url: img_url,
+          }],
+          address: {
+            street_1: "208 Sunview St",
+            street_2: "",
+            city: "Waterloo",
+            postal_code: "A1A 1A1",
+            state: "ON",
+            country: "CA"
+          },
+          summary: {
+            subtotal: price,
+            shipping_cost: 0.00,
+            total_tax: price*0.13,
+            total_cost: price*1.13,
+          },
+          adjustments: []
+        }
+      }
+    }
+  };
+
+  callSendAPI(messageData); 
 }
 
 function sendTextMessage(recipientId, messageText) {
