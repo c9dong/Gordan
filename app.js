@@ -447,12 +447,11 @@ function sendOrderReceipt(recipientId, food, price, img_url) {
           recipient_name: "David Dong",
           order_number: receiptId,
           currency: "USD",
-          payment_method: "Visa 1234",        
-          timestamp: "1428444852", 
+          payment_method: "Visa 1234",
           elements: [{
             title: food,
             quantity: 1,
-            price: price,
+            price: _.round(price*1, 2),
             currency: "CAD",
             image_url: img_url,
           }],
@@ -465,18 +464,15 @@ function sendOrderReceipt(recipientId, food, price, img_url) {
             country: "CA"
           },
           summary: {
-            subtotal: price,
+            subtotal: _.round(price*1, 2),
             shipping_cost: 0.00,
             total_tax: _.round(price*0.13, 2),
             total_cost: _.round(price*1.13, 2),
-          },
-          adjustments: []
+          }
         }
       }
     }
   };
-
-  console.log(messageData)
 
   callSendAPI(messageData); 
 }
