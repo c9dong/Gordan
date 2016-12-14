@@ -250,7 +250,10 @@ function sendRestaurantRecommendation(recipientId) {
             }, {
               type: "postback",
               title: "I want this!",
-              payload: "campus_pizza",
+              payload: {
+                "type": "restaurant",
+                "value": "campus_pizza",
+              }
             }],
           }, {
             title: "Foodie Fruitie",
@@ -264,7 +267,10 @@ function sendRestaurantRecommendation(recipientId) {
             }, {
               type: "postback",
               title: "I want this!",
-              payload: "foodie_fruitie",
+              payload: {
+                "type": "restaurant",
+                "value": "foodie_fruitie",
+              }
             }],
           }, {
             title: "Williams Fresh Cafe",
@@ -278,9 +284,139 @@ function sendRestaurantRecommendation(recipientId) {
             }, {
               type: "postback",
               title: "I want this!",
-              payload: "williams",
+              payload: {
+                "type": "restaurant",
+                "value": "williams",
+              }
             }],
           }]
+        }
+      }
+    }
+  };
+
+  callSendAPI(messageData);
+}
+
+function sendRecommendationsForRestaurant(recipientId, restaurant) {
+  const recommendations = {
+    "campus_pizza": [{
+      title: "Vegetarian Pizza",
+      subtitle: "4.99",            
+      image_url: SERVER_URL + "/assets/vegetarian_pizza.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "campus_pizza_vegetarian_pizza",
+        }
+      }, {
+      title: "Cheese Pizza",
+      subtitle: "4.99",            
+      image_url: SERVER_URL + "/assets/cheese_pizza.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "campus_pizza_cheese_pizza",
+        }
+      }, {
+      title: "Pepperoni Pizza",
+      subtitle: "4.99",            
+      image_url: SERVER_URL + "/assets/pepperoni_pizza.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "campus_pizza_pepperoni_pizza",
+        }
+      }],
+    }],
+    "foodie_fruitie": [{
+      title: "Teriyaki Salmon",
+      subtitle: "9.99",            
+      image_url: SERVER_URL + "/assets/teriyaki_salmon.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "foodie_frutie_teriyaki_salmon",
+        }
+      }, {
+      title: "BBQ Pork Fried Rice",
+      subtitle: "9.99",            
+      image_url: SERVER_URL + "/assets/pork_fried_rice.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "foodie_frutie_pork_fried_rice",
+        }
+      }, {
+      title: "Curry Ramen",
+      subtitle: "4.99",            
+      image_url: SERVER_URL + "/assets/curry_ramen.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "foodie_frutie_curry_ramen",
+        }
+      }],
+    }],
+    "williams": [{
+      title: "Chicken Quesadilla",
+      subtitle: "6.99",            
+      image_url: SERVER_URL + "/assets/chicken_quesadilla.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "williams_chicken_quesadilla",
+        }
+      }, {
+      title: "William's Big Breakfast",
+      subtitle: "9.99",            
+      image_url: SERVER_URL + "/assets/big_breakfast.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "williams_big_breakfast",
+        }
+      }, {
+      title: "Mac'n'Cheese",
+      subtitle: "4.99",            
+      image_url: SERVER_URL + "/assets/mac_cheese.png",
+      buttons: [{
+        type: "postback",
+        title: "I want this!",
+        payload: {
+          "type": "item",
+          "value": "williams_mac_cheese",
+        }
+      }],
+    }],
+  };
+
+  var messageData = {
+    recipient: {
+      id: recipientId
+    },
+    message: {
+      attachment: {
+        type: "template",
+        payload: {
+          template_type: "generic",
+          elements: recommendations[restaurant],
         }
       }
     }
@@ -305,14 +441,23 @@ function receivedPostback(event) {
   // button for Structured Messages. 
   var payload = event.postback.payload;
 
+  if(payload.type) {
+    switch(payload.type) {
+      case "restaurant":
+        sendTextMessage(senderID, "Want any of these?");
+        // Send a list of recommendations for the particular restaurant
+        sendRecommendationsForRestaurant(senderID, payload.value);
+        break;
+      case "item":
+        sendTextMessage(senderID, "We got your order!");
+        break;
+      default:
+        sendTextMessage(senderID, "Sorry, we couldn't understand your message");
+    }
+  }
+
   console.log("Received postback for user %d and page %d with payload '%s' " + 
     "at %d", senderID, recipientID, payload, timeOfPostback);
-
-  // When a postback is called, we'll send a message back to the sender to 
-  // let them know it was successful
-  sendTextMessage(senderID, "Want any of these?");
-
-  // Send a list of recommendations for the particular restaurant
 }
 
 /*
