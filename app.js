@@ -310,7 +310,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "campus_pizza_vegetarian_pizza",
-        }
+        }}],
       }, {
       title: "Cheese Pizza",
       subtitle: "4.99",            
@@ -321,7 +321,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "campus_pizza_cheese_pizza",
-        }
+        }}],
       }, {
       title: "Pepperoni Pizza",
       subtitle: "4.99",            
@@ -332,9 +332,8 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "campus_pizza_pepperoni_pizza",
-        }
+        }}],
       }],
-    }],
     "foodie_fruitie": [{
       title: "Teriyaki Salmon",
       subtitle: "9.99",            
@@ -345,7 +344,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "foodie_frutie_teriyaki_salmon",
-        }
+        }}],
       }, {
       title: "BBQ Pork Fried Rice",
       subtitle: "9.99",            
@@ -356,7 +355,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "foodie_frutie_pork_fried_rice",
-        }
+        }}],
       }, {
       title: "Curry Ramen",
       subtitle: "4.99",            
@@ -367,9 +366,8 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "foodie_frutie_curry_ramen",
-        }
+        }}],
       }],
-    }],
     "williams": [{
       title: "Chicken Quesadilla",
       subtitle: "6.99",            
@@ -380,7 +378,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "williams_chicken_quesadilla",
-        }
+        }}],
       }, {
       title: "William's Big Breakfast",
       subtitle: "9.99",            
@@ -391,7 +389,7 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "williams_big_breakfast",
-        }
+        }}],
       }, {
       title: "Mac'n'Cheese",
       subtitle: "4.99",            
@@ -402,9 +400,8 @@ function sendRecommendationsForRestaurant(recipientId, restaurant) {
         payload: {
           "type": "item",
           "value": "williams_mac_cheese",
-        }
+        }}],
       }],
-    }],
   };
 
   var messageData = {
