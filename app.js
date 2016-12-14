@@ -467,14 +467,16 @@ function sendOrderReceipt(recipientId, food, price, img_url) {
           summary: {
             subtotal: price,
             shipping_cost: 0.00,
-            total_tax: price*0.13,
-            total_cost: price*1.13,
+            total_tax: _.round(price*0.13, 2),
+            total_cost: _.round(price*1.13, 2),
           },
           adjustments: []
         }
       }
     }
   };
+
+  console.log(messageData)
 
   callSendAPI(messageData); 
 }
